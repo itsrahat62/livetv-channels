@@ -1,0 +1,45 @@
+name: Update channels
+
+# Rebuilds channels.json from worldwide free IPTV sources, keeping only the
+# servers that are verified working, and commits it so the app can fetch it.
+on:
+  schedule:
+    - cron: '15 */3 * * *'      # every 3 hours
+  workflow_dispatch:            # run manually from the Actions tab
+  push:
+    paths:
+      - 'build_channels.py'
+      - '.github/workflows/update-channels.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-channels
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build channels.json
+        run: python build_channels.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "channels-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add channels.json
+          if git diff --staged --quiet; then
+            echo "channels.json unchanged"
+          else
+            git commit -m "Update channels.json [skip ci]"
+            git push
+          fi
