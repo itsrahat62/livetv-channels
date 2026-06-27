@@ -34,6 +34,31 @@ EXTRA_M3U = [
     "https://raw.githubusercontent.com/johirxofficial/otv-auto-updated-playlist/main/otv.m3u",
 ]
 
+# Hand-curated channels (verified WC / sports feeds). force=True keeps the server
+# even if the runner can't reach it (geo-blocked); the rest are auto-tested and
+# dropped automatically when they go dead/expire — so the list self-heals.
+MANUAL_CHANNELS = [
+    # — Stable WC live match feeds (verified) —
+    {"name": "WC Live English",  "cat": "Sports", "url": "https://pub-f2987c4fc9d2450191dfee2ee8dc9f51.r2.dev/en/index.m3u8", "force": True},
+    {"name": "WC Live Espanol",  "cat": "Sports", "url": "https://pub-f2987c4fc9d2450191dfee2ee8dc9f51.r2.dev/sp/index.m3u8", "force": True},
+    {"name": "WC Live HD",       "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/106/index.m3u8", "force": True},
+    # — Verified free sports (stable, no token) —
+    {"name": "beIN Sports XTRA", "cat": "Sports", "url": "https://bein-xtra-bein.amagi.tv/playlist.m3u8", "force": True},
+    {"name": "Arryadia",         "cat": "Sports", "url": "https://stream-lb.livemediama.com/arryadia/hls/master.m3u8", "force": True},
+    {"name": "Caze TV",          "cat": "Sports", "url": "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8", "force": True},
+    {"name": "TYC Sports",       "cat": "Sports", "url": "https://amg26268-amg26268c14-freelivesports-emea-10267.playouts.now.amagi.tv/ts-us-e2-n2/playlist/amg26268-sportsstudio-tycsports-freelivesportsemea/playlist.m3u8", "force": True},
+    {"name": "DD Sports",        "cat": "Sports", "url": "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8", "force": True},
+    {"name": "ESPN8 The Ocho",   "cat": "Sports", "url": "https://d3b6q2ou5kp8ke.cloudfront.net/ESPNTheOcho.m3u8", "force": True},
+    # — WC-specific sources to auto-test (kept only when the runner verifies them) —
+    {"name": "Fancode BD",       "cat": "Sports", "url": "https://bd-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/"},
+    {"name": "Fancode India",    "cat": "Sports", "url": "https://in-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/"},
+    {"name": "Tapmad Sports",    "cat": "Sports", "url": "https://serieAleague.akamaized.net/hls/live/2107107/PSLE_tapmad2026-Backup/master.m3u8"},
+    {"name": "Match TV",         "cat": "Sports", "url": "https://bl.video.matchtv.ru/media/playlist/free_d46d0cf1712c0542ec7fd4f0808f600a_hd/17_89756005/1080/e6bef86de8a133cd7b27deb040758a00/4796141934.m3u8"},
+    {"name": "RTBF Sport",       "cat": "Sports", "url": "https://d1211whpimeups.cloudfront.net/smil:rtbgo/chunklist_b2196000_sleng.m3u8"},
+    {"name": "WC Stream 23",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8"},
+    {"name": "WC Stream 30",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/30/index.m3u8"},
+]
+
 # name -> logo URL, built from iptv-org, used to back-fill channels with no logo
 NAME_LOGO = {}
 
@@ -122,7 +147,7 @@ def best_quality_label(url, quality):
     return "Auto"
 
 
-def add_server(groups, key, name, cat, logo, sname, url, referer, ua, typ=None, kkey=None):
+def add_server(groups, key, name, cat, logo, sname, url, referer, ua, typ=None, kkey=None, force=False):
     if ADULT.search(name or "") or ADULT.search(cat or "") or ADULT.search(sname or ""):
         return
     cat = clean_cat(cat)
@@ -134,7 +159,21 @@ def add_server(groups, key, name, cat, logo, sname, url, referer, ua, typ=None, 
     g["urls"].add(url)
     t = typ or ("dash" if ".mpd" in url.lower() else "mp4" if ".mp4" in url.lower() else "hls")
     g["servers"].append({"name": sname, "url": url, "referer": referer or "",
-                         "ua": ua or "", "type": t, "key": kkey or ""})
+                         "ua": ua or "", "type": t, "key": kkey or "", "_force": force})
+
+
+def from_manual(groups):
+    n = 0
+    for c in MANUAL_CHANNELS:
+        url = (c.get("url") or "").strip()
+        if not url:
+            continue
+        add_server(groups, norm(c["name"]), c["name"], c.get("cat", "Sports"),
+                   c.get("logo", ""), host(url) or "Server", url,
+                   c.get("referer"), c.get("ua"), typ=c.get("type"),
+                   kkey=c.get("key"), force=c.get("force", False))
+        n += 1
+    print(f"  manual: +{n}")
 
 
 def from_iptv_org(groups):
@@ -276,9 +315,10 @@ def keep_working(groups):
         for key, idx, ok in ex.map(check, items):
             alive[(key, idx)] = ok
     for k, g in groups.items():
-        g["servers"] = [s for i, s in enumerate(g["servers"]) if alive.get((k, i), False)]
+        g["servers"] = [s for i, s in enumerate(g["servers"])
+                        if alive.get((k, i), False) or s.get("_force")]
     kept = sum(1 for v in alive.values() if v)
-    print(f"  working: {kept}/{len(items)} servers")
+    print(f"  working: {kept}/{len(items)} servers (+ forced manual)")
 
 
 def main():
@@ -295,6 +335,10 @@ def main():
         from_198(groups)
     except Exception as e:
         print("198 failed:", e)
+    try:
+        from_manual(groups)
+    except Exception as e:
+        print("manual failed:", e)
 
     # back-fill missing logos by channel name, then cap servers
     filled = 0
@@ -308,6 +352,11 @@ def main():
     print(f"Back-filled {filled} logos by name")
 
     keep_working(groups)
+
+    # drop the internal _force marker so it doesn't leak into channels.json
+    for g in groups.values():
+        for s in g["servers"]:
+            s.pop("_force", None)
 
     channels = []
     for key, g in groups.items():
