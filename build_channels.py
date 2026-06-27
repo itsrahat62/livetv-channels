@@ -49,14 +49,17 @@ MANUAL_CHANNELS = [
     {"name": "TYC Sports",       "cat": "Sports", "url": "https://amg26268-amg26268c14-freelivesports-emea-10267.playouts.now.amagi.tv/ts-us-e2-n2/playlist/amg26268-sportsstudio-tycsports-freelivesportsemea/playlist.m3u8", "force": True},
     {"name": "DD Sports",        "cat": "Sports", "url": "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8", "force": True},
     {"name": "ESPN8 The Ocho",   "cat": "Sports", "url": "https://d3b6q2ou5kp8ke.cloudfront.net/ESPNTheOcho.m3u8", "force": True},
-    # — WC-specific sources to auto-test (kept only when the runner verifies them) —
-    {"name": "Fancode BD",       "cat": "Sports", "url": "https://bd-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/"},
-    {"name": "Fancode India",    "cat": "Sports", "url": "https://in-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/"},
-    {"name": "Tapmad Sports",    "cat": "Sports", "url": "https://serieAleague.akamaized.net/hls/live/2107107/PSLE_tapmad2026-Backup/master.m3u8"},
-    {"name": "Match TV",         "cat": "Sports", "url": "https://bl.video.matchtv.ru/media/playlist/free_d46d0cf1712c0542ec7fd4f0808f600a_hd/17_89756005/1080/e6bef86de8a133cd7b27deb040758a00/4796141934.m3u8"},
-    {"name": "RTBF Sport",       "cat": "Sports", "url": "https://d1211whpimeups.cloudfront.net/smil:rtbgo/chunklist_b2196000_sleng.m3u8"},
-    {"name": "WC Stream 23",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8"},
-    {"name": "WC Stream 30",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/30/index.m3u8"},
+    # — WC-specific live channels (force-kept: they go up/down with live matches, so we
+    #   keep them in the list even when momentarily 403/404 between games) —
+    {"name": "Fancode BD",       "cat": "Sports", "url": "https://bd-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/", "force": True},
+    {"name": "Fancode India",    "cat": "Sports", "url": "https://in-mc-fblive.fancode.com/mumbai/142970_english_hls_7371b641c729339_1ta-di_h264/1080p.m3u8", "referer": "https://fancode.com/", "force": True},
+    {"name": "Tapmad Sports",    "cat": "Sports", "url": "https://serieAleague.akamaized.net/hls/live/2107107/PSLE_tapmad2026-Backup/master.m3u8", "force": True},
+    {"name": "Match TV",         "cat": "Sports", "url": "https://bl.video.matchtv.ru/media/playlist/free_d46d0cf1712c0542ec7fd4f0808f600a_hd/17_89756005/1080/e6bef86de8a133cd7b27deb040758a00/4796141934.m3u8", "force": True},
+    {"name": "RTBF Sport",       "cat": "Sports", "url": "https://d1211whpimeups.cloudfront.net/smil:rtbgo/chunklist_b2196000_sleng.m3u8", "force": True},
+    {"name": "WC Stream 23",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8", "force": True},
+    {"name": "WC Stream 30",     "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/30/index.m3u8", "force": True},
+    {"name": "WC Stream 106",    "cat": "Sports", "url": "https://1nyaler.streamhostingcdn.top/stream/106/index.m3u8", "force": True},
+    {"name": "Biraz WC Multi",   "cat": "Sports", "url": "https://biraz.6781237.xyz/checklist/androstreamlivebiraz1.m3u8", "force": True},
 ]
 
 # name -> logo URL, built from iptv-org, used to back-fill channels with no logo
